@@ -1,0 +1,20 @@
+{
+  "name": "web-appsec-2021",
+  "version": "0.0.1",
+  "description": "Test Project for showing-off express.js",
+  "main": "app.mjs",
+  "scripts": {
+    "start": "node app.mjs",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andreashappe/web-appsec-2021.git"
+  },
+  "author": "Andreas Happe <andreas@offensive.one>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andreashappe/web-appsec-2021/issues"
+  },
+  "homepage": "https://github.com/andreashappe/web-appsec-2021#readme"
+}
