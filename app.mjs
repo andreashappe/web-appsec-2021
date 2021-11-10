@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import PostsService from "./services/posts_service.mjs";
 import PostsStorageMemory from "./models/posts_storage_memory.mjs";
 
-const app = express();
-
 // load potential config data from .env file
 dotenv.config()
+
+const app = express();
 
 const postStorage = new PostsStorageMemory();
 const postsService = new PostsService(postStorage);
@@ -32,7 +32,7 @@ app.get('/posts/:id', function(req, res) {
     }
 });
 
-const port = process.env.port;
+const port = process.env.PORT;
 app.listen(port, function() {
   console.log(`Blog system listening on port ${port}!`)
 });
