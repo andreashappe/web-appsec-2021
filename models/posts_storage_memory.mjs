@@ -8,6 +8,9 @@ class Post {
     }
 }
 
+/*
+ * In-memory Storage für Posts
+ */
 export default class PostsStorageMemory {
     constructor() {
         this.posts = [];
