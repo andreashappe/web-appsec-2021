@@ -148,4 +148,8 @@ async function function2(url) {
     return 42;
 }
 
-let result = await function2("url");
+let result1 = function2("url");
+// result1 == promise
+
+let result2 = await result1;
+// result2 = 42
