@@ -8,14 +8,36 @@ import helmet from "helmet";
 // load potential config data from .env file
 dotenv.config()
 
-const app = express();
+export default function create_app(postsService) {
+  const app = express();
 
-/* setup ejs as view engine */
-app.set('view engine', 'ejs');
-app.use(expressEjsLayouts);
-app.set('layout', 'layouts/default');
+  /* setup ejs as view engine */
+  app.set('view engine', 'ejs');
+  app.use(expressEjsLayouts);
+  app.set('layout', 'layouts/default');
+  
+  app.use(helmet());
+  
+  app.get('/', function(req, res) {
+    res.redirect("/posts")
+  });
+  
+  app.get('/posts', function(req, res) {
+      res.render("posts/index.ejs", {posts: postsService.listPosts() });
+  });
+  
+  app.get('/posts/:id', function(req, res) {
+      let post = postsService.getPost(parseInt(req.params.id));
+  
+      if (post) {
+          res.render("posts/show.ejs", {post: post });
+      } else {
+          res.status(404).send("not found");
+      }
+  });
 
-app.use(helmet());
+  return app;
+}
 
 const postStorage = new PostsStorageMemory();
 const postsService = new PostsService(postStorage);
@@ -23,23 +45,7 @@ const postsService = new PostsService(postStorage);
 postsService.addPost(1, "first post", "andy", "first content");
 postsService.addPost(2, "second post", "andy", "second content");
 
-app.get('/', function(req, res) {
-  res.redirect("/posts")
-});
-
-app.get('/posts', function(req, res) {
-    res.render("posts/index.ejs", {posts: postsService.listPosts() });
-});
-
-app.get('/posts/:id', function(req, res) {
-    let post = postsService.getPost(parseInt(req.params.id));
-
-    if (post) {
-        res.render("posts/show.ejs", {post: post });
-    } else {
-        res.status(404).send("not found");
-    }
-});
+const app = create_app(postsService);
 
 const port = process.env.PORT;
 app.listen(port, function() {
