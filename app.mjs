@@ -12,6 +12,7 @@ import rateLimit from "express-rate-limit";
 import posts_setup_routes from "./controllers/posts_controller.mjs";
 import {check_authentication, session_setup_routes} from "./controllers/auth_controller.mjs";
 import {body, validationResult} from "express-validator";
+import csrf from "csurf";
 
 // load potential config data from .env file
 dotenv.config()
@@ -50,16 +51,21 @@ export default function create_app(postsService) {
   // included bootstrap css and javascript
   app.use('/static', express.static('./node_modules/bootstrap/dist'));
   
+  // setup csrf protection
+  const csrfProtection = csrf();
+
   app.get('/', (req, res) => res.redirect("/posts"));
   app.get("/admin", (req, res) => res.redirect("/admin/posts"));
   
-  app.get("/admin/posts", async function(req, res) {
+  app.get("/admin/posts", csrfProtection, async function(req, res) {
     let msgs = {
       infos: await req.consumeFlash("info"),
       errors: await req.consumeFlash("error")
     }
 
-    res.render("admin/posts/index.ejs", {posts: postsService.listPosts(), msgs: msgs });
+    let csrfToken = req.csrfToken();
+
+    res.render("admin/posts/index.ejs", {posts: postsService.listPosts(), msgs: msgs, csrfToken: csrfToken });
   });
 
   app.get("/admin/posts/:id", async function(req, res) {
@@ -77,7 +83,7 @@ export default function create_app(postsService) {
     }
   });
 
-  app.post("/admin/posts", body('title').notEmpty(), body('content').trim().escape(), async function(req, res) {
+  app.post("/admin/posts", csrfProtection, body('title').notEmpty(), body('content').trim().escape(), async function(req, res) {
     const errors = validationResult(req);
 
     if (errors.isEmpty()) {
