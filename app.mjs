@@ -2,6 +2,8 @@ import express from "express"
 import dotenv from "dotenv";
 import PostsService from "./services/posts_service.mjs";
 import PostsStorageMemory from "./models/posts_storage_memory.mjs";
+import UsersStorageMemory from "./models/users_storage_memory.mjs";
+import UsersService from "./services/users_service.mjs";
 import expressEjsLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 
@@ -42,11 +44,15 @@ export default function create_app(postsService) {
   return app;
 }
 
+const usersStorage = new UsersStorageMemory();
+const usersService = new UsersService(usersStorage);
+const user1 = await usersService.addUser("andy@offensive.one", "trustno1");
+
 const postStorage = new PostsStorageMemory();
 const postsService = new PostsService(postStorage);
 
-postsService.addPost(1, "first post", "andy", "first content");
-postsService.addPost(2, "second post", "andy", "second content");
+postsService.addPost(1, "first post", user1, "first content");
+postsService.addPost(2, "second post", user1, "second content");
 
 const app = create_app(postsService);
 
