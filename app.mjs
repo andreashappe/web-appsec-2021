@@ -47,12 +47,14 @@ export default function create_app(postsService) {
       "/session",
       "/static/js/bootstrap.bundle.min.js",
       "/static/css/bootstrap.min.css",
-      "/favicon.ico"
+      "/favicon.ico",
+      "/",
+      "/posts"
     ]
 
     console.log("now checking: "+ req.url);
 
-    if(allowList.includes(req.url)) {
+    if(allowList.includes(req.url) || req.url.match("^/posts/[0-9]+$")) {
       next();
     } else {
       if(req.session.user_id != undefined && req.session.user_id != null) {
@@ -75,6 +77,10 @@ export default function create_app(postsService) {
     res.redirect("/posts")
   });
   
+  app.get("/admin", function(req, res) {
+    res.send("hello!");
+  });
+
   app.get('/posts', async function(req, res) {
     let msgs = {
       infos: await req.consumeFlash("info"),
