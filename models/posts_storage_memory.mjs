@@ -14,11 +14,12 @@ class Post {
 export default class PostsStorageMemory {
     constructor() {
         this.posts = [];
-        Object.freeze(this);
+        this.lastId = 1;
+        Object.seal(this);
     }
 
-    addPost(id, title, name, content) {
-        const post = new Post(id, title, name, content);
+    addPost(title, name, content) {
+        const post = new Post(this.lastId++, title, name, content);
         this.posts.push(post);
         return post;
     }

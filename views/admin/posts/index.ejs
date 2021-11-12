@@ -1,0 +1,24 @@
+<h1>My amazing blog posts</h1>
+
+<% for(let post of posts) { %>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title"><%= post.title %></h5>
+            <h6 class="card-subtitle text-muted">by <%= post.author.email %></h6>
+            <p class="card-text">
+                <a href="/admin/posts/<%= post.id %>">Do you want to read more?</a>
+            </p>
+        </div>
+    </div>
+<% } %>
+
+<form action="/session/destroy" method="post">
+    <input type="submit" value="Logout"/>
+</form>
+
+<h1>Create a new Post</h1>
+<form action="/admin/posts" method="post">
+    Title: <input type="text" name="title"/>
+    Content: <input type="text" name="content"/>
+    <input type="submit"/>
+</form>

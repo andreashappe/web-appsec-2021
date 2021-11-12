@@ -11,6 +11,14 @@ export function session_setup_routes(usersService) {
     
         res.render('session/show', {msgs: msgs });
       });
+
+      router.post('/destroy', async function(req, res) {
+        req.session.user_id = null;
+        req.session.current_user = null;
+        req.session.regenerate(function(error) {
+          res.redirect("/");
+        });
+      });
     
       router.post('/', async function(req, res) {
           const email = req.body.email;
@@ -18,11 +26,11 @@ export function session_setup_routes(usersService) {
     
           let user = await usersService.loginUser(email, password);
           if (user) {
+            const url = req.session.redirect_to;
             req.session.regenerate( async function(err) {
               req.session.user_id = user.id;
               req.flash("info", `Hello ${user.email}`);
     
-              const url = req.session.redirect_to;
               if (url) {
                 req.session.redirect_to = null;
                 res.redirect(url);

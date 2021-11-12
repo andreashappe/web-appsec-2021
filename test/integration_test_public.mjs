@@ -9,8 +9,8 @@ chai.use(chaiHttp);
 const postStorage = new PostsStorageMemory();
 const postsService = new PostsService(postStorage);
 
-const user1 = postsService.addPost(1, "first post", "andy", "first content");
-const user2 = postsService.addPost(2, "second post", "andy", "second content");
+const user1 = postsService.addPost("first post", "andy", "first content");
+const user2 = postsService.addPost("second post", "andy", "second content");
 
 const app = create_app(postsService);
 
