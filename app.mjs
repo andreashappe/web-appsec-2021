@@ -17,6 +17,9 @@ export default function create_app(postsService) {
   app.set('layout', 'layouts/default');
   
   app.use(helmet());
+
+  // included bootstrap css and javascript
+  app.use('/static', express.static('./node_modules/bootstrap/dist'));
   
   app.get('/', function(req, res) {
     res.redirect("/posts")

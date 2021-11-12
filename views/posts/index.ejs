@@ -1,7 +1,13 @@
+<h1>My amazing blog posts</h1>
+
 <% for(let post of posts) { %>
-    <div class="post">
-        <%= post.title %>
-        by <%= post.author %>
-        <a href="/posts/<%= post.id %>">Do you want to read more?</a>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title"><%= post.title %></h5>
+            <h6 class="card-subtitle text-muted">by <%= post.author %></h6>
+            <p class="card-text">
+                <a href="/posts/<%= post.id %>">Do you want to read more?</a>
+            </p>
+        </div>
     </div>
 <% } %>
