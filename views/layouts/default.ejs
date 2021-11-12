@@ -8,6 +8,18 @@
     </head>
     <body>
         <div class="container-md">
+            <% if(locals.msgs) { %>
+                <% if(msgs["infos"]) { %>
+                    <% for(let i of msgs["infos"]) { %>
+                        <div class="alert alert-info" role="alert"><%= i %></div>
+                    <% } %>
+                <% } %>
+                <% if(msgs["errors"]) { %>
+                    <% for(let i of msgs["errors"]) { %>
+                        <div class="alert alert-danger" role="alert"><%= i %></div>
+                    <% } %>
+                <% } %>
+            <% } %>
             <%- body %>
         </div>
     </body>

@@ -17,6 +17,32 @@ describe("the user service", async function() {
         assert(user.id != null && user.id != undefined);
     });
 
+    it("should prevent login users with invalid password", async function() {
+        const userStorage = new UsersStorageMemory();
+        const userService = new UsersService(userStorage);
+
+        const email = "andy@offensive.one";
+        const password = "trustno1";
+
+        await userService.addUser(email, password);
+        let userLogin = await userService.loginUser(email, password + "fubar");
+
+        assert(userLogin === null);
+    });
+
+    it("should prevent login users with invalid email", async function() {
+        const userStorage = new UsersStorageMemory();
+        const userService = new UsersService(userStorage);
+
+        const email = "andy@offensive.one";
+        const password = "trustno1";
+
+        await userService.addUser(email, password);
+        let userLogin = await userService.loginUser(email + "fubar", password);
+
+        assert(userLogin === null);
+    });
+
     it("should allow login of created users", async function() {
         const userStorage = new UsersStorageMemory();
         const userService = new UsersService(userStorage);
