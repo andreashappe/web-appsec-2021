@@ -8,6 +8,7 @@ import expressEjsLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import session from "express-session";
 import { flash } from "express-flash-message";
+import rateLimit from "express-rate-limit";
 
 // load potential config data from .env file
 dotenv.config()
@@ -34,6 +35,11 @@ export default function create_app(postsService) {
 
   app.use(flash({
     sessionKeyName: "flashMessage"
+  }));
+
+  app.use("/session", rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 100
   }));
 
   app.use(function(req, res, next) {

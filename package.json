@@ -27,6 +27,7 @@
     "express": "^4.17.1",
     "express-ejs-layouts": "^2.5.1",
     "express-flash-message": "^2.1.0",
+    "express-rate-limit": "^5.5.1",
     "express-session": "^1.17.2",
     "helmet": "^4.6.0",
     "mocha": "^9.1.3"
