@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import PostsService from "./services/posts_service.mjs";
 import PostsStorageMemory from "./models/posts_storage_memory.mjs";
 import expressLayouts from "express-ejs-layouts";
+import helmet from "helmet";
 
 // load potential config data from .env file
 dotenv.config()
@@ -15,10 +16,13 @@ const postsService = new PostsService(postStorage);
 postsService.addPost(1, "first post", "andy", "first content");
 postsService.addPost(2, "second post", "andy", "second content");
 
+/* configure template engine */
 app.set('view engine', 'ejs');
 app.use(expressLayouts);
-
 app.set('layout', 'layouts/default');
+
+/* enable helmet */
+app.use(helmet());
 
 app.get('/', function(req, res) {
   res.redirect("/posts")
