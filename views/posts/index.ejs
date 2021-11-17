@@ -1,0 +1,9 @@
+<h1>My blog posts</h1>
+
+<% for(let post of posts) { %>
+    <div class="post">
+        <h2><%= post.title %></h2>
+        by <%= post.author %>
+        <a href="/posts/<%= post.id %>">Do you want to know more?</a>
+    </div>
+<% } %>
