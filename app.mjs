@@ -19,6 +19,9 @@ export default function setupApp(postsService) {
   /* enable helmet */
   app.use(helmet());
   
+  /* allow download of bootstrap file */
+  app.use('/public', express.static('./node_modules/bootstrap/dist'));
+
   app.get('/', function(req, res) {
     res.redirect("/posts")
   });
