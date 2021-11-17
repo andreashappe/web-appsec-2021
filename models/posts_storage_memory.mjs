@@ -17,8 +17,8 @@ export default class PostsStorageMemory {
         Object.freeze(this);
     }
 
-    addPost(id, title, name, content) {
-        const post = new Post(id, title, name, content);
+    addPost(id, title, user, content) {
+        const post = new Post(id, title, user, content);
         this.posts.push(post);
         return post;
     }
