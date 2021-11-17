@@ -1,6 +1,10 @@
+/*
+ * Geschäftslogik für Posts
+ */
 export default class PostsService {
     constructor(dataStorage) {
         this.posts = dataStorage;
+        /* freeze verhindert Veränderungen am Objekt */
         Object.freeze(this);
     }
 
