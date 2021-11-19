@@ -8,7 +8,7 @@ export default function setup_posts_routes(postsService) {
     });
       
     router.get('/:id', function(req, res) {
-        let post = postsService.getPost(parseInt(req.params.id));
+        let post = postsService.getPost(req.params.id);
     
         if (post) {
         res.render("posts/show.ejs", { post: post});

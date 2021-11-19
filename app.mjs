@@ -95,8 +95,8 @@ const postsService = new PostsService(postStorage);
 
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
   
-postsService.addPost(1, "first post", user1, "first content");
-postsService.addPost(2, "second post", user1, "second content");
+postsService.addPost("first post", user1, "first content");
+postsService.addPost("second post", user1, "second content");
   
 const port = process.env.PORT;
 const sessionSecret = process.env.SESSION_SECRET;

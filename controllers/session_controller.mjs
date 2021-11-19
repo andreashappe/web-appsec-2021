@@ -36,7 +36,7 @@ export default function setup_session_routes(usersService) {
 export function check_authentication(usersService, allowList) {
     return function(req, res, next) {
         const target = req.url;
-        if (allowList.includes(target) || req.url.match("^/posts/[0-9]+$")) {
+        if (allowList.includes(target) || req.url.match("^/posts/[0-9a-f\-]+$")) {
           next();
         } else {
           if(req.session.user_id === null || req.session.user_id === undefined) {

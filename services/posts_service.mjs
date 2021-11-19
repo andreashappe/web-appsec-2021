@@ -8,8 +8,8 @@ export default class PostsService {
         Object.freeze(this);
     }
 
-    addPost(id, title, user, content) {
-        return this.posts.addPost(id, title, user, content);
+    addPost(title, user, content) {
+        return this.posts.addPost(title, user, content);
     }
 
     listPosts() {
