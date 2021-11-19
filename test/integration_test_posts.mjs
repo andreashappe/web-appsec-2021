@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
+import DatabaseManagerMemory from "../models/database_manager_memory.mjs";
 import PostsService from "../services/posts_service.mjs";
-import PostsStorageMemory from "../models/posts_storage_memory.mjs";
 import UsersService from "../services/users_service.mjs";
-import UsersStorageMemory from "../models/users_storage_memory.mjs";
 import chai from "chai";
 import chaiHttp from "chai-http";
 import setupApp from "./../app.mjs";
@@ -15,11 +14,9 @@ dotenv.config()
 const sessionSecret = process.env.SESSION_SECRET;
 
 /* setup test data */
-const usersStorage = new UsersStorageMemory();
-const usersService = await UsersService.createUsersService(usersStorage);
-
-const postStorage = new PostsStorageMemory();
-const postsService = new PostsService(postStorage);
+const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+const usersService = await UsersService.createUsersService(dbManager.getUsersStorage());
+const postsService = new PostsService(dbManager.getPostsStorage());
 
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
 

@@ -1,10 +1,11 @@
-import UsersStorageMemory from './../models/users_storage_memory.mjs';
 import UsersService from '../services/users_service.mjs';
+import DatabaseManagerMemory from "../models/database_manager_memory.mjs";
 import assert from "assert";
 
 describe("The UsersService", async function() {
     it("should create an user and return the corresponding user object", async function() {
-        const storage = new UsersStorageMemory();
+        const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+        const storage = await dbManager.getUsersStorage();
         const service = await UsersService.createUsersService(storage);
 
         const email = "andreas@offensive.one";
@@ -16,7 +17,8 @@ describe("The UsersService", async function() {
     });
 
     it("should allow a valid user to login again", async function() {
-        const storage = new UsersStorageMemory();
+        const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+        const storage = await dbManager.getUsersStorage();
         const service = await UsersService.createUsersService(storage);
 
         const email = "andreas@offensive.one";
@@ -31,7 +33,8 @@ describe("The UsersService", async function() {
     });
 
     it("should not allow an invalid user with a wrong password to login", async function() {
-        const storage = new UsersStorageMemory();
+        const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+        const storage = await dbManager.getUsersStorage();
         const service = await UsersService.createUsersService(storage);
 
         const email = "andreas@offensive.one";
@@ -44,7 +47,8 @@ describe("The UsersService", async function() {
     });
 
     it("should not allow an invalid user with a wrong username to login", async function() {
-        const storage = new UsersStorageMemory();
+        const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+        const storage = await dbManager.getUsersStorage();
         const service = await UsersService.createUsersService(storage);
 
         const email = "andreas@offensive.one";
@@ -57,7 +61,8 @@ describe("The UsersService", async function() {
     });
 
     it("should allow retrieved of users by id", async function() {
-        const storage = new UsersStorageMemory();
+        const dbManager = await DatabaseManagerMemory.createDatabaseManager();
+        const storage = await dbManager.getUsersStorage();
         const service = await UsersService.createUsersService(storage);
 
         const email = "andreas@offensive.one";
