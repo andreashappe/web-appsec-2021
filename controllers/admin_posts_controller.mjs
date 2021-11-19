@@ -1,5 +1,6 @@
 import express from "express";
 import csrf from 'csurf';
+import {body, validationResult} from 'express-validator';
 
 export default function setup_admin_posts_routes(postsService) {
     const router = new express.Router();
@@ -18,12 +19,19 @@ export default function setup_admin_posts_routes(postsService) {
         }
     });
 
-    router.post('/', csrf(), function(req, res) {
-        const title = req.body.title;
-        const content = req.body.content;
+    router.post('/', csrf(), body('title').trim().escape().isLength({min: 10}), body('content').isLength({min: 5}), function(req, res) {
 
-        const newPost = postsService.addPost(title, req.session.current_user, content);
-        res.redirect("/admin/posts/" + newPost.id);
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            req.flash('error', errors.array().map((e) => `field ${e["param"]}: ${e["msg"]}`).join(", "));
+            res.render("admin/posts/index.ejs", { posts: postsService.listPosts(), csrfToken: req.csrfToken() } );
+        } else {
+            const title = req.body.title;
+            const content = req.body.content;
+
+            const newPost = postsService.addPost(title, req.session.current_user, content);
+            res.redirect("/admin/posts/" + newPost.id);
+        }
     });
 
     return router;
