@@ -9,6 +9,10 @@ import helmet from "helmet";
 import expressSession from "express-session";
 import { flash } from 'express-flash-message';
 import rateLimit from "express-rate-limit";
+import setup_posts_routes from "./controllers/posts_controller.mjs";
+import setup_session_routes from "./controllers/session_controller.mjs";
+import setup_admin_posts_routes from "./controllers/admin_posts_controller.mjs";
+import { check_authentication } from "./controllers/session_controller.mjs";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -47,35 +51,16 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   }));
 
   /* perform authentication */
-  app.use(function(req, res, next) {
-    const allowList = [
-      "/favicon.ico",
-      "/public/js/bootstrap.bundled.min.js",
-      "/public/css/bootstrap.min.js",
-      "/session",
-      "/",
-      "/posts"
-    ];
+  const allowList = [
+    "/favicon.ico",
+    "/public/js/bootstrap.bundled.min.js",
+    "/public/css/bootstrap.min.js",
+    "/session",
+    "/",
+    "/posts"
+  ];
 
-    const target = req.url;
-    if (allowList.includes(target) || req.url.match("^/posts/[0-9]+$")) {
-      next();
-    } else {
-      if(req.session.user_id === null || req.session.user_id === undefined) {
-        req.session.redirect_to = req.url;
-        res.redirect("/session");
-      } else {
-        const theUser = usersService.getUser(req.session.user_id);
-        if (theUser) {
-          req.session.current_user = theUser;
-          next();
-        } else {
-          req.session.redirect_to = req.url;
-          res.redirect("/session");
-        }
-      }
-    }
-  });
+  app.use(check_authentication(usersService, allowList));
 
   /* prepare flash for views */
   app.use(async function(req, res, next) {
@@ -92,59 +77,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     res.redirect("/admin/posts")
   });
   
-  app.get('/admin/posts', function(req, res) {
-    res.render("admin/posts/index.ejs", { posts: postsService.listPosts() } );
-  });
-  
-  app.get('/admin/posts/:id', function(req, res) {
-      let post = postsService.getPost(parseInt(req.params.id));
-  
-      if (post) {
-        res.render("admin/posts/show.ejs", { post: post});
-      } else {
-        res.status(404).send("not found");
-      }
-  });
-
-  app.get('/posts', function(req, res) {
-    res.render("posts/index.ejs", { posts: postsService.listPosts() } );
-  });
-  
-  app.get('/posts/:id', function(req, res) {
-      let post = postsService.getPost(parseInt(req.params.id));
-  
-      if (post) {
-        res.render("posts/show.ejs", { post: post});
-      } else {
-        res.status(404).send("not found");
-      }
-  });
-  app.get('/session', function(req, res) {
-    res.render('session/show.ejs');
-  });
-  
-  app.post('/session', async function(req, res) {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    const user = await usersService.loginUser(email, password);
-    const redirect_to = req.session.redirect_to;
-
-    if (user) {
-      req.session.regenerate(function(err) {
-        req.session.user_id = user.id;
-        req.flash("info", "welcome user " + user.email);
-        if (redirect_to) {
-          res.redirect(redirect_to)
-        } else {
-          res.redirect("/posts");  
-        }
-      });
-    } else {
-      req.flash("error", "email or password unknown");
-      res.render("session/show.ejs");
-    }
-  });
+  app.use("/admin/posts", setup_admin_posts_routes(postsService));
+  app.use("/posts", setup_posts_routes(postsService));
+  app.use("/session", setup_session_routes(usersService));
 
   return app;  
 }
