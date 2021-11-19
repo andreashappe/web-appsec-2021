@@ -52,14 +52,17 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       "/favicon.ico",
       "/public/js/bootstrap.bundled.min.js",
       "/public/css/bootstrap.min.js",
-      "/session"
+      "/session",
+      "/",
+      "/posts"
     ];
 
     const target = req.url;
-    if (allowList.includes(target)) {
+    if (allowList.includes(target) || req.url.match("^/posts/[0-9]+$")) {
       next();
     } else {
       if(req.session.user_id === null || req.session.user_id === undefined) {
+        req.session.redirect_to = req.url;
         res.redirect("/session");
       } else {
         const theUser = usersService.getUser(req.session.user_id);
@@ -67,6 +70,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
           req.session.current_user = theUser;
           next();
         } else {
+          req.session.redirect_to = req.url;
           res.redirect("/session");
         }
       }
@@ -83,7 +87,25 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   app.get('/', function(req, res) {
     res.redirect("/posts")
   });
+
+  app.get('/admin', function(req, res) {
+    res.redirect("/admin/posts")
+  });
   
+  app.get('/admin/posts', function(req, res) {
+    res.render("admin/posts/index.ejs", { posts: postsService.listPosts() } );
+  });
+  
+  app.get('/admin/posts/:id', function(req, res) {
+      let post = postsService.getPost(parseInt(req.params.id));
+  
+      if (post) {
+        res.render("admin/posts/show.ejs", { post: post});
+      } else {
+        res.status(404).send("not found");
+      }
+  });
+
   app.get('/posts', function(req, res) {
     res.render("posts/index.ejs", { posts: postsService.listPosts() } );
   });
@@ -97,7 +119,6 @@ export default function setupApp(postsService, usersService, sessionSecret) {
         res.status(404).send("not found");
       }
   });
-
   app.get('/session', function(req, res) {
     res.render('session/show.ejs');
   });
@@ -107,11 +128,18 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     const password = req.body.password;
 
     const user = await usersService.loginUser(email, password);
+    const redirect_to = req.session.redirect_to;
 
     if (user) {
-      req.session.user_id = user.id;
-      req.flash("info", "welcome user " + user.email);
-      res.redirect("/posts");
+      req.session.regenerate(function(err) {
+        req.session.user_id = user.id;
+        req.flash("info", "welcome user " + user.email);
+        if (redirect_to) {
+          res.redirect(redirect_to)
+        } else {
+          res.redirect("/posts");  
+        }
+      });
     } else {
       req.flash("error", "email or password unknown");
       res.render("session/show.ejs");
