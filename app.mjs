@@ -7,6 +7,7 @@ import UsersStorageMemory from "./models/users_storage_memory.mjs";
 import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import expressSession from "express-session";
+import { flash } from 'express-flash-message';
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -20,6 +21,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       sameSite: 'Strict'
     }
   }));
+
+  /* setup flash messages */
+  app.use(flash());
 
   /* configure template engine */
   app.set('view engine', 'ejs');
@@ -61,6 +65,13 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     }
   });
 
+  /* prepare flash for views */
+  app.use(async function(req, res, next) {
+    global.info = await req.consumeFlash("info");
+    global.error = await req.consumeFlash("error");
+    next();
+  });  
+
   app.get('/', function(req, res) {
     res.redirect("/posts")
   });
@@ -91,10 +102,10 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
     if (user) {
       req.session.user_id = user.id;
-      console.log("user is logged in ");
+      req.flash("info", "welcome user " + user.email);
       res.redirect("/posts");
     } else {
-      console.log("user login error");
+      req.flash("error", "email or password unknown");
       res.render("session/show.ejs");
     }
   });

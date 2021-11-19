@@ -6,6 +6,13 @@
         <link rel="stylesheet" href="/public/css/bootstrap.min.css"/>
     </head>
     <body class="container">
+        <% for(let i of info) { %>
+            <div class="alert alert-info"><%= i %></div>
+        <% } %>
+        <% for(let i of error) { %>
+            <div class="alert alert-warning"><%= i %></div>
+        <% } %>
+
         <%- body %>
     </body>
 </html>
