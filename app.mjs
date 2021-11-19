@@ -8,6 +8,7 @@ import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import expressSession from "express-session";
 import { flash } from 'express-flash-message';
+import rateLimit from "express-rate-limit";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -39,6 +40,13 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   /* allow download of bootstrap file */
   app.use('/public', express.static('./node_modules/bootstrap/dist'));
 
+  /* add a rate limit for sessions */
+  app.use("/session", rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 100
+  }));
+
+  /* perform authentication */
   app.use(function(req, res, next) {
     const allowList = [
       "/favicon.ico",
