@@ -35,7 +35,7 @@ export default function setup_session_routes(usersService) {
 }
 
 export function check_authentication(usersService, allowList) {
-    return function(req, res, next) {
+    return async function(req, res, next) {
         const target = req.url;
         if (allowList.includes(target) || req.url.match("^/posts/[0-9a-f\-]+$")) {
           next();
@@ -44,7 +44,7 @@ export function check_authentication(usersService, allowList) {
             req.session.redirect_to = req.url;
             res.redirect("/session");
           } else {
-            const theUser = usersService.getUser(req.session.user_id);
+            const theUser = await usersService.getUser(req.session.user_id);
             if (theUser) {
               req.session.current_user = theUser;
               next();

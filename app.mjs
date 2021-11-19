@@ -11,7 +11,7 @@ import setup_posts_routes from "./controllers/posts_controller.mjs";
 import setup_session_routes from "./controllers/session_controller.mjs";
 import setup_admin_posts_routes from "./controllers/admin_posts_controller.mjs";
 import { check_authentication } from "./controllers/session_controller.mjs";
-import DatabaseManagerMemory from "./models/database_manager_memory.mjs";
+import DatabaseManagerMemory from "./models/database_manager_sqlite.mjs";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -93,8 +93,8 @@ const postsService = new PostsService(dbManager.getPostsStorage());
 
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
   
-postsService.addPost("first post", user1, "first content");
-postsService.addPost("second post", user1, "second content");
+await postsService.addPost("first post", user1, "first content");
+await postsService.addPost("second post", user1, "second content");
   
 const port = process.env.PORT;
 const sessionSecret = process.env.SESSION_SECRET;

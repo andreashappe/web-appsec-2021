@@ -5,12 +5,12 @@ import {body, validationResult} from 'express-validator';
 export default function setup_admin_posts_routes(postsService) {
     const router = new express.Router();
 
-    router.get('/', csrf(), function(req, res) {
-        res.render("admin/posts/index.ejs", { posts: postsService.listPosts(), csrfToken: req.csrfToken() } );
+    router.get('/', csrf(), async function(req, res) {
+        res.render("admin/posts/index.ejs", { posts: await postsService.listPosts(), csrfToken: req.csrfToken() } );
     });
       
-    router.get('/:id', function(req, res) {
-        let post = postsService.getPost(req.params.id);
+    router.get('/:id', async function(req, res) {
+        let post = await postsService.getPost(req.params.id);
     
         if (post) {
             res.render("admin/posts/show.ejs", { post: post});
@@ -19,7 +19,7 @@ export default function setup_admin_posts_routes(postsService) {
         }
     });
 
-    router.post('/', csrf(), body('title').trim().escape().isLength({min: 10}), body('content').isLength({min: 5}), function(req, res) {
+    router.post('/', csrf(), body('title').trim().escape().isLength({min: 10}), body('content').isLength({min: 5}), async function(req, res) {
 
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
@@ -29,7 +29,7 @@ export default function setup_admin_posts_routes(postsService) {
             const title = req.body.title;
             const content = req.body.content;
 
-            const newPost = postsService.addPost(title, req.session.current_user, content);
+            const newPost = await postsService.addPost(title, req.session.current_user, content);
             res.redirect("/admin/posts/" + newPost.id);
         }
     });
