@@ -58,7 +58,6 @@ describe("the website", async function() {
             })
     });
 
-
     it("should allow valid users to login", async function() {
         await chai.request(app)
             .post("/session")

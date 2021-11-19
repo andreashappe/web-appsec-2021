@@ -13,6 +13,7 @@ export default function setup_session_routes(usersService) {
         if (user) {
           req.session.regenerate(function(err) {
             req.session.user_id = user.id;
+            req.session.current_user = user;
             req.flash("info", "welcome user " + user.email);
             if (redirect_to) {
               res.redirect(redirect_to)
