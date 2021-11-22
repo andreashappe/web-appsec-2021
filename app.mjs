@@ -8,10 +8,10 @@ import expressSession from "express-session";
 import { flash } from 'express-flash-message';
 import rateLimit from "express-rate-limit";
 import setup_posts_routes from "./controllers/posts_controller.mjs";
-import setup_session_routes from "./controllers/session_controller.mjs";
 import setup_admin_posts_routes from "./controllers/admin_posts_controller.mjs";
-import { check_authentication } from "./controllers/session_controller.mjs";
 import DatabaseManagerMemory from "./models/database_manager_sqlite.mjs";
+import passport from "passport";
+import passportLocal from "passport-local";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -37,6 +37,35 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   /* allow express to parse http bodies */
   app.use(express.urlencoded());
 
+  /* setup passport */
+  app.use(passport.initialize());
+
+  passport.use(new passportLocal.Strategy({
+    usernameField: "email",
+    passwordField: "password"
+  },
+  async (username, password, done) => {
+    const theUser = await usersService.loginUser(username, password);
+    if (theUser) {
+      return done(null, theUser);
+    } else {
+      return done(null, false, { errors: { 'email or password': 'is invalid'}});
+    }
+  }));
+
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (user, done) => {
+    const theUser = await usersService.getUser(user);
+    if (theUser) {
+      return done(null, theUser);
+    } else {
+      return done("user not found");
+    }
+  });
+
   /* enable helmet */
   app.use(helmet());
   
@@ -49,24 +78,29 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     max: 100
   }));
 
-  /* perform authentication */
-  const allowList = [
-    "/favicon.ico",
-    "/public/js/bootstrap.bundled.min.js",
-    "/public/css/bootstrap.min.js",
-    "/session",
-    "/",
-    "/posts"
-  ];
-
-  app.use(check_authentication(usersService, allowList));
-
   /* prepare flash for views */
   app.use(async function(req, res, next) {
     global.info = await req.consumeFlash("info");
     global.error = await req.consumeFlash("error");
     next();
-  });  
+  });
+
+  const authenticateUser = function(req, res, done) {
+    if (req.session && req.session.passport) {
+      return done();
+    } else {
+      req.session.redirect_to = req.url;
+      res.redirect("/session");
+    }
+  }
+
+  app.use("/posts", setup_posts_routes(postsService));
+  app.use("/admin", authenticateUser);
+  app.use("/admin/posts", authenticateUser, setup_admin_posts_routes(postsService));
+
+  app.get('/session', function(req, res) {
+    res.render('session/show.ejs');
+  });
 
   app.get('/', function(req, res) {
     res.redirect("/posts")
@@ -75,10 +109,17 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   app.get('/admin', function(req, res) {
     res.redirect("/admin/posts")
   });
-  
-  app.use("/admin/posts", setup_admin_posts_routes(postsService));
-  app.use("/posts", setup_posts_routes(postsService));
-  app.use("/session", setup_session_routes(usersService));
+
+  app.post('/session', passport.authenticate('local', {
+      failureRedirect: '/session',
+      failureFlash: true
+  }), function(req, res) {
+    if (req.session.redirect_to) {
+      res.redirect(req.session.redirect_to);
+    } else {
+      res.redirect('/posts')
+    }
+  });
 
   return app;  
 }
