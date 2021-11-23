@@ -41,6 +41,10 @@ export default class UsersStorageMemory {
     async getUserById(id) {
         const cmd = "select * from users where uuid = ?";
         const row = await this.db.get(cmd, [id]);
-        return new User(row.uuid, row.email, row.password_hash);
+        if (row) {
+            return new User(row.uuid, row.email, row.password_hash);
+        } else {
+            return null;
+        }
     }
 }

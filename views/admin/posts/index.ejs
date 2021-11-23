@@ -18,3 +18,10 @@
     <input type="hidden" name="_csrf" value="<%=csrfToken%>"/>
     <input type="submit" value="Neuen Blog Post anlegen"/>
 </form>
+
+<h2>JWT access</h2>
+
+The token:
+<p>
+ curl -H 'Authorization: Bearer <%= jwt %>' http://localhost:3000/api/posts
+</p>

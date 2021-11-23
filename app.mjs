@@ -12,6 +12,7 @@ import setup_admin_posts_routes from "./controllers/admin_posts_controller.mjs";
 import DatabaseManagerMemory from "./models/database_manager_sqlite.mjs";
 import passport from "passport";
 import passportLocal from "passport-local";
+import passportJwt from "passport-jwt";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -39,6 +40,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
   /* setup passport */
   app.use(passport.initialize());
+  app.use(passport.session());
 
   passport.use(new passportLocal.Strategy({
     usernameField: "email",
@@ -119,6 +121,27 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     } else {
       res.redirect('/posts')
     }
+  });
+
+  /* add jwt setup */
+  const jwtOpts = {
+    jwtFromRequest: passportJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: "secret",
+    issuer: "http://myweppapp",
+    audienence: "someapp"
+  }
+
+  passport.use(new passportJwt.Strategy(jwtOpts, async function (payload, done) {
+    const user = await usersService.getUser(payload.sub);
+    if (user) {
+      return done(null, user);
+    } else {
+      return done("user not found", false);
+    }
+  }));
+
+  app.get("/api/posts", passport.authenticate("jwt", {session: false}), async function(req, res) {
+    res.send(await postsService.listPosts())
   });
 
   return app;  
