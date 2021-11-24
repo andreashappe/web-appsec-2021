@@ -1,9 +1,7 @@
 import express from "express"
 import dotenv from "dotenv";
 import PostsService from "./services/posts_service.mjs";
-import PostsStorageMemory from "./models/posts_storage_memory.mjs";
 import UsersService from "./services/users_service.mjs";
-import UsersStorageMemory from "./models/users_storage_memory.mjs";
 import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import expressSession from "express-session";
@@ -12,6 +10,7 @@ import expressRateLimit from 'express-rate-limit';
 import { authentication_check, setup_routes_session } from "./controllers/session_controller.mjs";
 import setup_routes_posts from "./controllers/posts_controller.mjs";
 import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
+import DbManager from './models/db_manager_memory.mjs';
 
 
 export default function setupApp(postsService, usersService, sessionSecret) {
@@ -87,11 +86,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 // load potential config data from .env file
 dotenv.config()
 
-const usersStorage = new UsersStorageMemory();
-const usersService = await UsersService.createUsersService(usersStorage);
-
-const postStorage = new PostsStorageMemory();
-const postsService = new PostsService(postStorage);
+const dbManager = await DbManager.createDbManager();
+const usersService = await UsersService.createUsersService(dbManager.getUsersStorage());
+const postsService = new PostsService(dbManager.getPostsStorage());
 
 /* prepare fake data for testing */
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
