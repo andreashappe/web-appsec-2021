@@ -10,7 +10,7 @@ import expressRateLimit from 'express-rate-limit';
 import { authentication_check, setup_routes_session } from "./controllers/session_controller.mjs";
 import setup_routes_posts from "./controllers/posts_controller.mjs";
 import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
-import DbManager from './models/db_manager_memory.mjs';
+import DbManager from './models/db_manager_sqlite.mjs';
 import csurf from "csurf";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
