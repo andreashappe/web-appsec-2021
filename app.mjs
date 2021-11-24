@@ -8,6 +8,7 @@ import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import expressSession from "express-session";
 import { flash } from 'express-flash-message';
+import expressRateLimit from 'express-rate-limit';
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -25,6 +26,13 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
   /* configure flash */
   app.use(flash());
+
+  /* configure rate limits */
+  const limiter = expressRateLimit({
+    windowsMs: 1 * 60 * 1000, /* 1 minute */
+    max: 100
+  });
+  app.use("/session", limiter);
 
   /* configure template engine */
   app.set('view engine', 'ejs');
