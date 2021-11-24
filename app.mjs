@@ -9,6 +9,10 @@ import helmet from "helmet";
 import expressSession from "express-session";
 import { flash } from 'express-flash-message';
 import expressRateLimit from 'express-rate-limit';
+import { authentication_check, setup_routes_session } from "./controllers/session_controller.mjs";
+import setup_routes_posts from "./controllers/posts_controller.mjs";
+import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
+
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -49,36 +53,17 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   app.use('/public', express.static('./node_modules/bootstrap/dist'));
 
   /* authentication check */
-  app.use(function(req, res, next) {
-    /* which actions are allowed? */
-    const allowList = [
-      "/favicon.ico",
-      "/public/js/bootstrap.bundled.min.js",
-      "/public/css/bootstrap.min.js",
-      "/session",
-      "/posts",
-      "/"
-    ];
+  const allowList = [
+    "/favicon.ico",
+    "/public/js/bootstrap.bundled.min.js",
+    "/public/css/bootstrap.min.js",
+    "/session",
+    "/posts",
+    "/"
+  ];
 
-    const target = req.url;
-    if (allowList.includes(target) || req.url.match("^/posts/[0-9a-zA-Z\-]+$")) {
-      next();
-    } else {
-      if(req.session.user_id === null || req.session.user_id === undefined) {
-        req.session.redirect_to = req.url;
-        res.redirect("/session");
-      } else {
-        const theUser = usersService.getUser(req.session.user_id);
-        if (theUser) {
-          req.session.current_user = theUser;
-          next();
-        } else {
-          req.session.redirect_to = req.url;
-          res.redirect("/session");
-        }
-      }
-    }
-  });
+  /* setup authentication check */
+  app.use(authentication_check(usersService, allowList));
 
   /* middleware that prepares infos/errors */
   app.use(async function(req, res, next) {
@@ -87,77 +72,14 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     next();
   });
 
-  /* different actions */
-  app.get('/', function(req, res) {
-    res.redirect("/posts")
-  });
-  
-  app.get('/posts', function(req, res) {
-    res.render("posts/index.ejs", { posts: postsService.listPosts() } );
-  });
-  
-  app.get('/posts/:id', function(req, res) {
-      let post = postsService.getPost(parseInt(req.params.id));
-  
-      if (post) {
-        res.render("posts/show.ejs", { post: post});
-      } else {
-        res.status(404).send("not found");
-      }
-  });
+  /* default redirects */
+  app.get('/', (req, res) => { res.redirect("/posts") });
+  app.get('/admin', (req, res) => { res.redirect("/admin/posts") });
 
-  /* admin functionality */
-  app.get('/admin', function(req, res) {
-    res.redirect("/admin/posts")
-  });
-  
-  app.get('/admin/posts', function(req, res) {
-    res.render("admin/posts/index.ejs", { posts: postsService.listPosts() } );
-  });
-  
-  app.get('/admin/posts/:id', function(req, res) {
-      let post = postsService.getPost(parseInt(req.params.id));
-  
-      if (post) {
-        res.render("admin/posts/show.ejs", { post: post});
-      } else {
-        res.status(404).send("not found");
-      }
-  });
-
-
-  /* display login form */
-  app.get('/session', function(req, res) {
-    res.render('session/show.ejs');
-  });
-  
-  /* login user */
-  app.post('/session', async function(req, res) {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    const user = await usersService.loginUser(email, password);
-
-    if (user) {
-      const redirect_to = req.session.redirect_to;
-
-      /* regenerate session id (force it) */
-      req.session.regenerate(async function(err) {
-        /* session id has been regenerated */
-        req.session.user_id = user.id;
-        await req.flash("info", `Welcome back, ${user.email}`);
-        console.log("user is logged in ");
-        if (redirect_to) {
-          res.redirect(redirect_to);
-        } else {
-          res.redirect("/admin/posts");
-        }
-      });  
-    } else {
-      await req.flash("error", "user/password invalid");
-      res.redirect("/session");
-    }
-  });
+  /* setup resources */  
+  app.use("/posts", setup_routes_posts(postsService));
+  app.use("/admin/posts", setup_routes_admin_posts(postsService));
+  app.use("/session", setup_routes_session(usersService));
 
   return app;  
 }
