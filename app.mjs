@@ -11,7 +11,7 @@ import { authentication_check, setup_routes_session } from "./controllers/sessio
 import setup_routes_posts from "./controllers/posts_controller.mjs";
 import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
 import DbManager from './models/db_manager_memory.mjs';
-
+import csurf from "csurf";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -42,6 +42,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   app.use(expressLayouts);
   app.set('layout', 'layouts/default');
   
+  /* setup csrf middleware */
+  const csrfProtection = csurf();
+
   /* allow express to parse http bodies */
   app.use(express.urlencoded());
 
@@ -77,7 +80,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
   /* setup resources */  
   app.use("/posts", setup_routes_posts(postsService));
-  app.use("/admin/posts", setup_routes_admin_posts(postsService));
+  app.use("/admin/posts", setup_routes_admin_posts(postsService, csrfProtection));
   app.use("/session", setup_routes_session(usersService));
 
   return app;  

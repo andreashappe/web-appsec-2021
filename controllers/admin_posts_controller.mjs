@@ -1,12 +1,12 @@
 import express from "express";
 import { body, validationResult} from "express-validator";
 
-export default function setup_routes_admin_posts(postsService) {
+export default function setup_routes_admin_posts(postsService, csrfProtection) {
 
     const router = express.Router();
 
-    router.get('/', function(req, res) {
-        res.render("admin/posts/index.ejs", { posts: postsService.listPosts() } );
+    router.get('/', csrfProtection, function(req, res) {
+        res.render("admin/posts/index.ejs", { posts: postsService.listPosts(), csrf: req.csrfToken() } );
     });
       
     router.get('/:id', function(req, res) {
@@ -19,7 +19,8 @@ export default function setup_routes_admin_posts(postsService) {
         }
     });
 
-    router.post('/', body("title").isLength({min: 5}).trim().escape(),
+    router.post('/', csrfProtection,
+                     body("title").isLength({min: 5}).trim().escape(),
                      body("content").isLength({min: 5}).trim().escape(),
      async function(req, res) {
 
