@@ -7,6 +7,7 @@ import UsersStorageMemory from "./models/users_storage_memory.mjs";
 import expressLayouts from "express-ejs-layouts";
 import helmet from "helmet";
 import expressSession from "express-session";
+import { flash } from 'express-flash-message';
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -21,6 +22,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       sameSite: 'Strict'
     }
   }));
+
+  /* configure flash */
+  app.use(flash());
 
   /* configure template engine */
   app.set('view engine', 'ejs');
@@ -66,6 +70,13 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     }
   });
 
+  /* middleware that prepares infos/errors */
+  app.use(async function(req, res, next) {
+    global.infos = await req.consumeFlash("info");
+    global.errors = await req.consumeFlash("error");
+    next();
+  });
+
   /* different actions */
   app.get('/', function(req, res) {
     res.redirect("/posts")
@@ -101,9 +112,10 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       const redirect_to = req.session.redirect_to;
 
       /* regenerate session id (force it) */
-      req.session.regenerate(function(err) {
+      req.session.regenerate(async function(err) {
         /* session id has been regenerated */
         req.session.user_id = user.id;
+        await req.flash("info", `Welcome back, ${user.email}`);
         console.log("user is logged in ");
         if (redirect_to) {
           res.redirect(redirect_to);
@@ -112,8 +124,8 @@ export default function setupApp(postsService, usersService, sessionSecret) {
         }
       });  
     } else {
-      console.log("user login error");
-      res.render("session/show.ejs");
+      await req.flash("error", "user/password invalid");
+      res.redirect("/session");
     }
   });
 
