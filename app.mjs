@@ -11,6 +11,7 @@ import expressSession from "express-session";
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
 
+  /* configure session */
   app.use(expressSession({
     secret: sessionSecret,
     resave: false,
@@ -35,7 +36,9 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   /* allow download of bootstrap file */
   app.use('/public', express.static('./node_modules/bootstrap/dist'));
 
+  /* authentication check */
   app.use(function(req, res, next) {
+    /* which actions are allowed? */
     const allowList = [
       "/favicon.ico",
       "/public/js/bootstrap.bundled.min.js",
@@ -48,6 +51,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       next();
     } else {
       if(req.session.user_id === null || req.session.user_id === undefined) {
+        req.session.redirect_to = req.url;
         res.redirect("/session");
       } else {
         const theUser = usersService.getUser(req.session.user_id);
@@ -55,12 +59,14 @@ export default function setupApp(postsService, usersService, sessionSecret) {
           req.session.current_user = theUser;
           next();
         } else {
+          req.session.redirect_to = req.url;
           res.redirect("/session");
         }
       }
     }
   });
 
+  /* different actions */
   app.get('/', function(req, res) {
     res.redirect("/posts")
   });
@@ -79,10 +85,12 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       }
   });
 
+  /* display login form */
   app.get('/session', function(req, res) {
     res.render('session/show.ejs');
   });
   
+  /* login user */
   app.post('/session', async function(req, res) {
     const email = req.body.email;
     const password = req.body.password;
@@ -90,9 +98,19 @@ export default function setupApp(postsService, usersService, sessionSecret) {
     const user = await usersService.loginUser(email, password);
 
     if (user) {
-      req.session.user_id = user.id;
-      console.log("user is logged in ");
-      res.redirect("/posts");
+      const redirect_to = req.session.redirect_to;
+
+      /* regenerate session id (force it) */
+      req.session.regenerate(function(err) {
+        /* session id has been regenerated */
+        req.session.user_id = user.id;
+        console.log("user is logged in ");
+        if (redirect_to) {
+          res.redirect(redirect_to);
+        } else {
+          res.redirect("/posts");
+        }
+      });  
     } else {
       console.log("user login error");
       res.render("session/show.ejs");
@@ -111,16 +129,18 @@ const usersService = await UsersService.createUsersService(usersStorage);
 const postStorage = new PostsStorageMemory();
 const postsService = new PostsService(postStorage);
 
+/* prepare fake data for testing */
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
   
 postsService.addPost(1, "first post", user1, "first content");
 postsService.addPost(2, "second post", user1, "second content");
-  
 const port = process.env.PORT;
 const sessionSecret = process.env.SESSION_SECRET;
 
+/* wire everything up */
 const app = setupApp(postsService, usersService, sessionSecret);
 
+/* start listening port (BUG: we will also do this during test cases) */
 app.listen(port, function() {
   console.log(`Blog system listening on port ${port}!`)
 });
