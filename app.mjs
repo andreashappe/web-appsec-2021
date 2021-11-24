@@ -55,11 +55,13 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       "/favicon.ico",
       "/public/js/bootstrap.bundled.min.js",
       "/public/css/bootstrap.min.js",
-      "/session"
+      "/session",
+      "/posts",
+      "/"
     ];
 
     const target = req.url;
-    if (allowList.includes(target)) {
+    if (allowList.includes(target) || req.url.match("^/posts/[0-9a-zA-Z\-]+$")) {
       next();
     } else {
       if(req.session.user_id === null || req.session.user_id === undefined) {
@@ -104,6 +106,26 @@ export default function setupApp(postsService, usersService, sessionSecret) {
       }
   });
 
+  /* admin functionality */
+  app.get('/admin', function(req, res) {
+    res.redirect("/admin/posts")
+  });
+  
+  app.get('/admin/posts', function(req, res) {
+    res.render("admin/posts/index.ejs", { posts: postsService.listPosts() } );
+  });
+  
+  app.get('/admin/posts/:id', function(req, res) {
+      let post = postsService.getPost(parseInt(req.params.id));
+  
+      if (post) {
+        res.render("admin/posts/show.ejs", { post: post});
+      } else {
+        res.status(404).send("not found");
+      }
+  });
+
+
   /* display login form */
   app.get('/session', function(req, res) {
     res.render('session/show.ejs');
@@ -128,7 +150,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
         if (redirect_to) {
           res.redirect(redirect_to);
         } else {
-          res.redirect("/posts");
+          res.redirect("/admin/posts");
         }
       });  
     } else {
