@@ -21,13 +21,13 @@ export default class PostsStorageMemory {
 
     constructor(db, usersStorage) {
         this.db = db;
+        this.usersStorage = usersStorage;
         Object.freeze(this);
     }
 
     async addPost(title, user, content) {
         const id = uuidv4();
         const cmd = "insert into posts (uuid, title, content, author) values (?, ?, ?, ?)";
-
         const row = await this.db.run(cmd, [id, title, content, user.email]);
 
         if (row) {
@@ -39,11 +39,11 @@ export default class PostsStorageMemory {
 
     async listPosts() {
         const cmd = "select uuid from posts";
-
         const results = [];
-        const uuids = await this.db.all(cmd);
+        const uuids = await this.db.all(cmd, []);
+
         for(let uuid of uuids) {
-            results.push(await this.getPost(uuid));
+            results.push(await this.getPost(uuid["uuid"]));
         }
         return results;
     }
@@ -53,7 +53,7 @@ export default class PostsStorageMemory {
 
         const row = await this.db.get(cmd, [id]);
         if (row) {
-            const user = this.usersStorage.getUser(row.email);
+            const user = await this.usersStorage.getUser(row.author);
             return new Post(row.uuid, row.title, user, row.content);
         }
         return null;

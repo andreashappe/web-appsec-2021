@@ -46,7 +46,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   const csrfProtection = csurf();
 
   /* allow express to parse http bodies */
-  app.use(express.urlencoded());
+  app.use(express.urlencoded({extended: true}));
 
   /* enable helmet */
   app.use(helmet());

@@ -17,7 +17,7 @@ export default class DbManagerSqlite {
     constructor(db) {
         this.db = db;
         this.usersStorage = new UsersStorageSqlite(this.db);
-        this.postsStorage = new PostsStorageSqlite(this.db);
+        this.postsStorage = new PostsStorageSqlite(this.db, this.usersStorage);
         Object.freeze(this);
     }
 

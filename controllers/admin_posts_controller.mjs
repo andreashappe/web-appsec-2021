@@ -5,7 +5,7 @@ export default function setup_routes_admin_posts(postsService, csrfProtection) {
 
     const router = express.Router();
 
-    router.get('/', csrfProtection, function(req, res) {
+    router.get('/', csrfProtection, async function(req, res) {
         res.render("admin/posts/index.ejs", { posts: postsService.listPosts(), csrf: req.csrfToken() } );
     });
       
