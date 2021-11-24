@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 class Post {
     constructor(id, title, author, content) {
         this.id = id;
@@ -17,8 +19,9 @@ export default class PostsStorageMemory {
         Object.freeze(this);
     }
 
-    addPost(id, title, name, content) {
-        const post = new Post(id, title, name, content);
+    addPost(title, user, content) {
+        const id = uuidv4();
+        const post = new Post(id, title, user, content);
         this.posts.push(post);
         return post;
     }

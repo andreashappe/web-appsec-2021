@@ -1,0 +1,19 @@
+<h1>My blog posts</h1>
+
+<% for(let post of posts) { %>
+    <div class="card">
+        <div class="card-body">
+            <h5><%= post.title %></h5>
+            <p class="card-text">by <%= post.author.email %></p>
+            <a class="btn btn-primary" href="/admin/posts/<%= post.id %>">Do you want to know more?</a>
+        </div>
+    </div>
+<% } %>
+
+<h2>Create new Post</h2>
+<form action="/admin/posts" method="post">
+    Title: <input type="text" name="title"/>
+    Content: <input type="text" name="content"/>
+    <input type="hidden" name="_csrf" value="<%= csrf %>"/>
+    <input type="submit" value="Post anlegen"/>
+</form>
