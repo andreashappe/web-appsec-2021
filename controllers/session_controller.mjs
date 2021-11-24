@@ -1,4 +1,5 @@
 import express from "express";
+import { body, validationResult} from "express-validator";
 
 export function setup_routes_session(usersService) {
     const router = express.Router();
@@ -9,9 +10,17 @@ export function setup_routes_session(usersService) {
     });
     
     /* login user */
-    router.post('/', async function(req, res) {
+    router.post('/', body("email").isEmail().normalizeEmail(),
+                async function(req, res) {
         const email = req.body.email;
         const password = req.body.password;
+
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+          redirect_to("/session");
+          flash("error", "please supply correct email");
+          return;
+        }
 
         const user = await usersService.loginUser(email, password);
 
