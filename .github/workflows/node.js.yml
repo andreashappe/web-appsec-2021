@@ -12,6 +12,10 @@ on:
 jobs:
   build:
 
+    env:
+      PORT: 3000
+      SESSION_SECRET: "too many secrets"
+
     runs-on: ubuntu-latest
 
     strategy:
