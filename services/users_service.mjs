@@ -25,7 +25,7 @@ export default class UsersService {
     }
 
     async loginUser(email, password) {
-        const theUser = this.storage.getUser(email);
+        const theUser = await this.storage.getUser(email);
 
         if (theUser) {
             if (await bcrypt.compare(password, theUser.password_hash)) {
@@ -38,7 +38,7 @@ export default class UsersService {
         return null;
     }
 
-    getUser(id) {
+    async getUser(id) {
         return this.storage.getUserById(id);
     }
 }
