@@ -44,7 +44,7 @@ export function authentication_check(usersService, allowList) {
 
     return function(req, res, next) {    
         const target = req.url;
-        if (allowList.includes(target) || req.url.match("^/posts/[0-9a-zA-Z\-]+$")) {
+        if (allowList.includes(target) || req.url.match("^/posts/[0-9a-zA-Z-]+$")) {
           next();
         } else {
           if(req.session.user_id === null || req.session.user_id === undefined) {

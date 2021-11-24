@@ -25,8 +25,8 @@ const user1_email = "andreas@offensive.one";
 const user1_password = "trustno1";
 const user1 = await usersService.registerUser(user1_email, user1_password);
 
-const post1 = postsService.addPost(1, "first post", user1, "first content");
-const post2 = postsService.addPost(2, "second post", user1, "second content");
+const post1 = postsService.addPost("first post", user1, "first content");
+const post2 = postsService.addPost("second post", user1, "second content");
 
 const app = setupApp(postsService, usersService, sessionSecret);
 

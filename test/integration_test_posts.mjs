@@ -23,8 +23,8 @@ const postsService = new PostsService(postStorage);
 
 const user1 = await usersService.registerUser("andreas@offensive.one", "trustno1");
 
-const post1 = postsService.addPost(1, "first post", user1, "first content");
-const post2 = postsService.addPost(2, "second post", user1, "second content");
+const post1 = postsService.addPost("first post", user1, "first content");
+const post2 = postsService.addPost("second post", user1, "second content");
 
 const app = setupApp(postsService, usersService, sessionSecret);
 
@@ -50,7 +50,7 @@ describe("the website", async function() {
             });
     });
 
-    it("should show a post on /posts/1", async function() {
+    it("should show a post on /posts/" + post1.id, async function() {
         await chai.request(app)
             .get("/posts/" + post1.id)
             .then( (res) => {
