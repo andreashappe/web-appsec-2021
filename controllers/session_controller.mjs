@@ -1,12 +1,12 @@
 import express from "express";
 import { body, validationResult} from "express-validator";
 
-export function setup_routes_session(usersService) {
+export function setup_routes_session(usersService, csrfProtection) {
     const router = express.Router();
 
     /* display login form */
-    router.get('/', function(req, res) {
-        res.render('session/show.ejs');
+    router.get('/', csrfProtection, function(req, res) {
+        res.render('session/show.ejs', {csrf: req.csrfToken()});
     });
     
     /* login user */
@@ -44,6 +44,11 @@ export function setup_routes_session(usersService) {
             await req.flash("error", "user/password invalid");
             res.redirect("/session");
         }
+    });
+
+    router.post("/destroy", csrfProtection, async function(req, res) {
+      req.session.destroy();
+      res.redirect("/");
     });
 
     return router;

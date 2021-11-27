@@ -17,3 +17,9 @@
     <input type="hidden" name="_csrf" value="<%= csrf %>"/>
     <input type="submit" value="Post anlegen"/>
 </form>
+
+<h2>Logout User</h2>
+<form action="/session/destroy" method="post">
+    <input type="submit" value="Logout user"/>
+    <input type="hidden" name="_csrf" value="<%= csrf %>"/>
+</form>
