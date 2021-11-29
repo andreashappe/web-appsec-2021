@@ -7,7 +7,7 @@ import helmet from "helmet";
 import expressSession from "express-session";
 import { flash } from 'express-flash-message';
 import expressRateLimit from 'express-rate-limit';
-import { authentication_check, setup_routes_session } from "./controllers/session_controller.mjs";
+import { authentication_check, setup_routes_session, setup_passport } from "./controllers/session_controller.mjs";
 import setup_routes_posts from "./controllers/posts_controller.mjs";
 import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
 import DbManager from './models/db_manager_sqlite.mjs';
@@ -54,18 +54,8 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   /* allow download of bootstrap file */
   app.use('/public', express.static('./node_modules/bootstrap/dist'));
 
-  /* authentication check */
-  const allowList = [
-    "/favicon.ico",
-    "/public/js/bootstrap.bundled.min.js",
-    "/public/css/bootstrap.min.js",
-    "/session",
-    "/posts",
-    "/"
-  ];
-
-  /* setup authentication check */
-  app.use(authentication_check(usersService, allowList));
+  /* configure passport */
+  setup_passport(app, usersService);
 
   /* middleware that prepares infos/errors */
   app.use(async function(req, res, next) {
@@ -80,7 +70,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
   /* setup resources */  
   app.use("/posts", setup_routes_posts(postsService));
-  app.use("/admin/posts", setup_routes_admin_posts(postsService, csrfProtection));
+  app.use("/admin/posts", authentication_check, setup_routes_admin_posts(postsService, csrfProtection));
   app.use("/session", setup_routes_session(usersService, csrfProtection));
 
   return app;  
