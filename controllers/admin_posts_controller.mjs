@@ -1,12 +1,13 @@
 import express from "express";
 import { body, validationResult} from "express-validator";
+import {generateJWT } from "./api_posts_controller.mjs";
 
 export default function setup_routes_admin_posts(postsService, csrfProtection) {
 
     const router = express.Router();
 
     router.get('/', csrfProtection, async function(req, res) {
-        res.render("admin/posts/index.ejs", { posts: await postsService.listPosts(), csrf: req.csrfToken() } );
+        res.render("admin/posts/index.ejs", { posts: await postsService.listPosts(), csrf: req.csrfToken(), jwtToken: generateJWT(process.env.SESSION_SECRET, req.user) } );
     });
       
     router.get('/:id', async function(req, res) {

@@ -23,3 +23,7 @@
     <input type="submit" value="Logout user"/>
     <input type="hidden" name="_csrf" value="<%= csrf %>"/>
 </form>
+
+<h2>JWTs for API access</h2>
+
+<p>curl -H "Authorization: Bearer <%= jwtToken %>" http://localhost:3000/api/posts</p>

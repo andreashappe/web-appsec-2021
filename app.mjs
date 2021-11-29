@@ -12,6 +12,7 @@ import setup_routes_posts from "./controllers/posts_controller.mjs";
 import setup_routes_admin_posts from "./controllers/admin_posts_controller.mjs";
 import DbManager from './models/db_manager_sqlite.mjs';
 import csurf from "csurf";
+import { setup_api_paths, setup_jwt_auth } from "./controllers/api_posts_controller.mjs";
 
 export default function setupApp(postsService, usersService, sessionSecret) {
   const app = express();
@@ -56,6 +57,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
 
   /* configure passport */
   setup_passport(app, usersService);
+  setup_jwt_auth(sessionSecret, usersService);
 
   /* middleware that prepares infos/errors */
   app.use(async function(req, res, next) {
@@ -72,6 +74,8 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   app.use("/posts", setup_routes_posts(postsService));
   app.use("/admin/posts", authentication_check, setup_routes_admin_posts(postsService, csrfProtection));
   app.use("/session", setup_routes_session(usersService, csrfProtection));
+
+  app.use("/api/posts", setup_api_paths(postsService));
 
   return app;  
 }
