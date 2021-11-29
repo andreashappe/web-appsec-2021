@@ -19,4 +19,8 @@ export default class PostsService {
     getPost(id) {
         return this.posts.getPost(id);
     }
+
+    destroyPost(id) {
+        return this.posts.destroyPost(id);
+    }
 }

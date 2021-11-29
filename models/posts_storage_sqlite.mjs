@@ -58,4 +58,10 @@ export default class PostsStorageMemory {
         }
         return null;
     }
+
+    async destroyPost(id) {
+        const cmd = "delete from posts where uuid = ?";
+        const row = await this.db.run(cmd, [id]);
+        return null;
+    }
 }

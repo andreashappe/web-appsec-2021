@@ -31,7 +31,7 @@ export default function setup_routes_admin_posts(postsService, csrfProtection) {
             const title = req.body.title;
             const content = req.body.content;
     
-            const thePost = await postsService.addPost(title, req.session.current_user, content);
+            const thePost = await postsService.addPost(title, req.user, content);
             if (thePost) {
                 res.redirect("/admin/posts/" + thePost.id);
             } else {
@@ -43,6 +43,19 @@ export default function setup_routes_admin_posts(postsService, csrfProtection) {
                 req.flash("error", `Fehler in Feld ${e["param"]}: ${e["msg"]}`);
             } 
             res.redirect("/admin/posts")
+        }
+    });
+
+    router.post('/:id/destroy', csrfProtection, async function(req, res) {
+        const thePost = await postsService.getPost(req.params.id);
+
+        if (thePost.author.id === req.user.id) {
+            req.flash("info", "post wird gelöscht... kann etwas dauern");
+            await postsService.destroyPost(thePost.id);
+            res.redirect("/admin/posts");
+        } else {
+            req.flash("error", "not your post!");
+            res.redirect("/admin/posts");
         }
     });
 

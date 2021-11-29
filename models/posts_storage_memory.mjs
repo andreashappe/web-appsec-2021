@@ -38,4 +38,9 @@ export default class PostsStorageMemory {
         }
         return null;
     }
+
+
+    destroyPost(id) {
+        // not implemented yet
+    }
 }

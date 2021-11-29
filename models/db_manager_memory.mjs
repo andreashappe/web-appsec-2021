@@ -20,4 +20,5 @@ export default class DbManagerMemory {
     getPostsStorage() {
         return this.postsStorage;
     }
+
 }
