@@ -5,34 +5,32 @@ import assert from "assert";
 
 describe("the PostsService should", async function() {
 
+    let mgr = null;
+    let storage = null;
+    let posts = null;
+    let users = null;
+    let author = null;
+
+    const title = "the title";
+    const content = "the content";
+    const email = "andreas@offensive.one";
+
+    this.beforeEach(async function() {
+        mgr = await DbManagerSqlite.createDbManager();
+        storage = mgr.getPostsStorage();
+        posts = new PostsService(storage);
+        users = new UsersService(mgr.getUsersStorage());
+        author = await users.registerUser(email, "somepassword");
+    });
+
     it("should be able to add a post and the post should be returned", async function() {
-
-        const mgr = await DbManagerSqlite.createDbManager();
-        const storage = mgr.getPostsStorage();
-        let posts = new PostsService(storage);
-
-        const title = "the title";
-        const author = "andy";
-        const content = "the content";
-
         const added = await posts.addPost(title, author, content);
         assert(added.title === title);
         assert(added.content === content);
-        assert(added.author === author);
+        assert(added.author.email === author.email);
     });
 
     it("should be able to add a post and the post should be able to be retrieved", async function() {
-
-        const mgr = await DbManagerSqlite.createDbManager();
-        const storage = mgr.getPostsStorage();
-        let posts = new PostsService(storage);
-        let users = new UsersService(mgr.getUsersStorage());
-
-        const title = "the title";
-        const email = "andreas@offensive.one";
-        const author = await users.registerUser(email, "somepassword");
-        const content = "the content";
-
         const tmp = await posts.addPost(title, author, content);
         const added = await posts.getPost(tmp.id);
 
@@ -43,16 +41,6 @@ describe("the PostsService should", async function() {
     });
 
     it("should be able to add a post and the list should contain the post", async function() {
-        const mgr = await DbManagerSqlite.createDbManager();
-        const storage = mgr.getPostsStorage();
-        let posts = new PostsService(storage);
-        let users = new UsersService(mgr.getUsersStorage());
-
-        const title = "the title";
-        const email = "andreas@offensive.one";
-        const author = await users.registerUser(email, "somepassword");
-        const content = "the content";
-
         assert((await posts.listPosts()).length === 0);
 
         const newPost = await posts.addPost(title, author, content);
