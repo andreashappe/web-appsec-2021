@@ -5,6 +5,10 @@
         <div class="card-body">
             <h5><%= post.title %></h5>
             <p class="card-text">by <%= post.author.email %></p>
+            <form action="/admin/posts/<%= post.id %>/destroy" method="post">
+                <input type="hidden" name="_csrf" value="<%= csrf %>"/>
+                <input type="submit" value="Post löschen"/>
+            </form>
             <a class="btn btn-primary" href="/admin/posts/<%= post.id %>">Do you want to know more?</a>
         </div>
     </div>

@@ -46,5 +46,17 @@ export default function setup_routes_admin_posts(postsService, csrfProtection) {
         }
     });
 
+    router.post('/:id/destroy', csrfProtection, async function(req, res) {
+        const thePost = await postsService.getPost(req.params.id);
+
+        if (thePost && thePost.author.id === req.user.id) {
+            req.flash("info", "Post wurde gelöscht");
+            await postsService.destroyPost(thePost);
+        } else {
+            req.flash("error", "post gehörte anderem user");
+        }
+        res.redirect("/admin/posts");
+    });
+
     return router;
 }
