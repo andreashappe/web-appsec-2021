@@ -32,12 +32,12 @@ const app = setupApp(postsService, usersService, sessionSecret);
 
 describe("the website", async function() {
 
-    it("should redirect /admin to /session", async function() {
+    it("should redirect /admin to /admin/posts", async function() {
         await chai.request(app)
             .get("/admin")
             .redirects(0)
             .then( (res) => {
-                chai.expect(res).to.redirectTo("/session");
+                chai.expect(res).to.redirectTo("/admin/posts");
             })
     });
 

@@ -1,5 +1,41 @@
 import express from "express";
 import { body, validationResult} from "express-validator";
+import passport from "passport";
+import passportLocal from "passport-local";
+
+export function setup_passport_authentication(app, usersService) {
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    passport.use(new passportLocal.Strategy(
+      {
+        usernameField: 'email',
+        passwordField: 'password'
+      },
+      async function(email, password, done) {
+        const theUser = await usersService.loginUser(email, password);
+        if (theUser) {
+          return done(null, theUser);
+        } else {
+          return done(null, false, "Email/Password invalid");
+        }
+      }
+    ));
+
+    passport.serializeUser(function(user, done) {
+      done(null, user.id);
+    });
+
+    passport.deserializeUser(async function(id, done) {
+        const theUser = await usersService.getUser(id);
+        if (theUser) {
+          return done(null, theUser);
+        } else {
+          // TODO: check if this works
+          return done(null, false);
+        }
+    });
+}
 
 export function setup_routes_session(usersService, csrfProtection) {
     const router = express.Router();
@@ -8,73 +44,34 @@ export function setup_routes_session(usersService, csrfProtection) {
     router.get('/', function(req, res) {
         res.render('session/show.ejs');
     });
-    
+
     /* login user */
-    router.post('/', body("email").isEmail().normalizeEmail(),
-                async function(req, res) {
-        const email = req.body.email;
-        const password = req.body.password;
-
-        const errors = validationResult(req);
-        if(!errors.isEmpty()) {
-          redirect_to("/session");
-          flash("error", "please supply correct email");
-          return;
-        }
-
-        const user = await usersService.loginUser(email, password);
-
-        if (user) {
-            const redirect_to = req.session.redirect_to;
-
-            /* regenerate session id (force it) */
-            req.session.regenerate(async function(err) {
-
-            /* session id has been regenerated */
-            req.session.user_id = user.id;
-            await req.flash("info", `Welcome back, ${user.email}`);
+    router.post('/', passport.authenticate('local'), async function(req, res) {
+      await req.flash("info", `Welcome back, ${req.user.email}`);
+      const redirect_to = req.session.redirect_to;
             
-            if (redirect_to) {
-                res.redirect(redirect_to);
-            } else {
-                res.redirect("/admin/posts");
-            }
-        });  
-        } else {
-            await req.flash("error", "user/password invalid");
-            res.redirect("/session");
-        }
+      if (redirect_to) {
+          res.redirect(redirect_to);
+      } else {
+          res.redirect("/admin/posts");
+      }
     });
-
+    
     router.post("/destroy", csrfProtection, async function(req, res) {
         req.session.user_id = null;
-        req.session.destroy();
+        req.logout();
         res.redirect("/session");
     });
 
     return router;
 }
 
-export function authentication_check(usersService, allowList) {
-
-    return async function(req, res, next) {    
-        const target = req.url;
-        if (allowList.includes(target) || req.url.match("^/posts/[0-9a-zA-Z-]+$")) {
-          next();
-        } else {
-          if(req.session.user_id === null || req.session.user_id === undefined) {
-            req.session.redirect_to = req.url;
-            res.redirect("/session");
-          } else {
-            const theUser = await usersService.getUser(req.session.user_id);
-            if (theUser) {
-              req.session.current_user = theUser;
-              next();
-            } else {
-              req.session.redirect_to = req.url;
-              res.redirect("/session");
-            }
-          }
-        }
-    }
+export async function passport_authentication_check(req, res, next) {
+  // req.user <- der aktuelle user falls der user eingeloggt wurde
+  if (req.user !== null && req.user !== undefined) {
+    next();
+  } else {
+    req.session.redirect_to = req.base_url;
+    res.redirect("/session");
+  }
 }

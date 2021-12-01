@@ -30,7 +30,7 @@ export default function setup_routes_admin_posts(postsService, csrfProtection) {
             const title = req.body.title;
             const content = req.body.content;
     
-            const thePost = await postsService.addPost(title, req.session.current_user, content);
+            const thePost = await postsService.addPost(title, req.user, content);
             if (thePost) {
                 res.redirect("/admin/posts/" + thePost.id);
             } else {
