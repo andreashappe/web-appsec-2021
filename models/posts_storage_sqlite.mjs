@@ -21,6 +21,7 @@ export default class PostsStorageMemory {
 
     constructor(db, usersStorage) {
         this.db = db;
+        this.usersStorage = usersStorage;
         Object.freeze(this);
     }
 
@@ -41,9 +42,10 @@ export default class PostsStorageMemory {
         const cmd = "select uuid from posts";
 
         const results = [];
-        const uuids = await this.db.all(cmd);
-        for(let uuid of uuids) {
-            results.push(await this.getPost(uuid));
+        const rows = await this.db.all(cmd);
+        for(let row of rows) {
+            let post = await this.getPost(row["uuid"]);
+            results.push(post);
         }
         return results;
     }
@@ -53,7 +55,7 @@ export default class PostsStorageMemory {
 
         const row = await this.db.get(cmd, [id]);
         if (row) {
-            const user = this.usersStorage.getUser(row.email);
+            const user = await this.usersStorage.getUser(row.author);
             return new Post(row.uuid, row.title, user, row.content);
         }
         return null;

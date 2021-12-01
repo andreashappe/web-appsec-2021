@@ -1,59 +1,52 @@
+import DbManagerMemory from './../models/db_manager_memory.mjs';
 import PostsService from './../services/posts_service.mjs';
-import PostsStorageMemory from './../models/posts_storage_memory.mjs';
+import UsersService from './../services/users_service.mjs';
 import assert from "assert";
 
-describe("the PostsService should", function() {
-    it("should be able to add a post and the post should be returned", function() {
-        const mgr = await DbManagerSqlite.createDbManager();
-        const storage = mgr.getPostsStorage();
+describe("the PostsService (memory) should", async function() {
 
-        let storage = new PostsStorageMemory();
-        let posts = new PostsService(storage);
+    let mgr = null;
+    let posts = null;
+    let users = null;
+    let author = null;
 
-        const title = "the title";
-        const author = "andy";
-        const content = "the content";
+    const title = "the title";
+    const email = "andreas@offensive.one";
+    const content = "the content";
 
-        const added = posts.addPost(title, author, content);
-        assert(added.title === title);
-        assert(added.content === content);
-        assert(added.author === author);
+    this.beforeEach(async function() {
+        mgr = await DbManagerMemory.createDbManager();
+        posts = new PostsService(mgr.getPostsStorage());
+        users = await UsersService.createUsersService(await mgr.getUsersStorage());
+        author = await users.registerUser(email, "trustno1");
     });
 
-    it("should be able to add a post and the post should be able to be retrieved", function() {
-        let storage = new PostsStorageMemory();
-        let posts = new PostsService(storage);
+    it("should be able to add a post and the post should be returned", async function() {
+        const added = await posts.addPost(title, author, content);
+        assert(added.title === title);
+        assert(added.content === content);
+        assert(added.author.email === email);
+    });
 
-        const title = "the title";
-        const author = "andy";
-        const content = "the content";
-
-        const tmp = posts.addPost(title, author, content);
-
-        const added = posts.getPost(tmp.id);
+    it("should be able to add a post and the post should be able to be retrieved", async function() {
+        const tmp = await posts.addPost(title, author, content);
+        const added = await posts.getPost(tmp.id);
         assert(added.id === tmp.id);
         assert(added.title === title);
         assert(added.content === content);
-        assert(added.author === author);
+        assert(added.author.email === email);
     });
 
-    it("should be able to add a post and the list should contain the post", function() {
-        let storage = new PostsStorageMemory();
-        let posts = new PostsService(storage);
-
-        const title = "the title";
-        const author = "andy";
-        const content = "the content";
-
-        assert(posts.listPosts().length === 0);
-        posts.addPost(title, author, content);
-        const all = posts.listPosts();
+    it("should be able to add a post and the list should contain the post", async function() {
+        assert((await posts.listPosts()).length === 0);
+        await posts.addPost(title, author, content);
+        const all = await posts.listPosts();
 
         assert(all.length===1);
 
         const added = all[0];
         assert(added.title === title);
         assert(added.content === content);
-        assert(added.author === author);
+        assert(added.author.email === email);
     });
 });
