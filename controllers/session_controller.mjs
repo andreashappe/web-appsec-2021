@@ -1,7 +1,7 @@
 import express from "express";
 import { body, validationResult} from "express-validator";
 
-export function setup_routes_session(usersService) {
+export function setup_routes_session(usersService, csrfProtection) {
     const router = express.Router();
 
     /* display login form */
@@ -44,6 +44,12 @@ export function setup_routes_session(usersService) {
             await req.flash("error", "user/password invalid");
             res.redirect("/session");
         }
+    });
+
+    router.post("/destroy", csrfProtection, async function(req, res) {
+        req.session.user_id = null;
+        req.session.destroy();
+        res.redirect("/session");
     });
 
     return router;

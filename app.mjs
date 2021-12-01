@@ -81,7 +81,7 @@ export default function setupApp(postsService, usersService, sessionSecret) {
   /* setup resources */  
   app.use("/posts", setup_routes_posts(postsService));
   app.use("/admin/posts", setup_routes_admin_posts(postsService, csrfProtection));
-  app.use("/session", setup_routes_session(usersService));
+  app.use("/session", setup_routes_session(usersService, csrfProtection));
 
   return app;  
 }
