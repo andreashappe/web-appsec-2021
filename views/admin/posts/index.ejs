@@ -18,6 +18,11 @@
     <input type="submit" value="Post anlegen"/>
 </form>
 
+<h2>JWT for data access</h2>
+<p>
+    curl -H "Authorization: Bearer <%= jwtToken %>" http://localhost:3000/api/posts
+</p>
+
 <h2>Logout User</h2>
 <form action="/session/destroy" method="post">
     <input type="hidden" name="_csrf" value="<%= csrf %>"/>
