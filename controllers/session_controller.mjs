@@ -46,7 +46,9 @@ export function setup_routes_session(usersService, csrfProtection) {
     });
 
     /* login user */
-    router.post('/', passport.authenticate('local'), async function(req, res) {
+    router.post('/', passport.authenticate('local', {
+        failureRedirect: "/session"
+      }), async function(req, res) {
       await req.flash("info", `Welcome back, ${req.user.email}`);
       const redirect_to = req.session.redirect_to;
             
